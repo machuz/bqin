@@ -70,8 +70,13 @@ func (r *Receiver) Receive(ctx context.Context) ([]*url.URL, *ReceiptHandle, err
 		return nil, handle, errors.Wrap(err, "body parse failed")
 	}
 
+	handle.Debugf("event: %s", event)
+	handle.Debugf("event.Records: %s", event.Records)
+	handle.Debugf("len: %s", len(event.Records))
 	urls := make([]*url.URL, 0, len(event.Records))
+	handle.Debugf("urls: %s", urls)
 	for _, record := range event.Records {
+		handle.Debugf("key: %s", record.S3.Object.Key)
 		record.S3.Object.URLDecodedKey = record.S3.Object.Key
 		if strings.Contains(record.S3.Object.Key, "%") {
 			if decordedKey, err := url.QueryUnescape(record.S3.Object.Key); err == nil {
