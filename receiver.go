@@ -64,12 +64,23 @@ func (r *Receiver) Receive(ctx context.Context) ([]*url.URL, *ReceiptHandle, err
 	if msg.Body == nil {
 		return nil, handle, errors.New("body is nil")
 	}
-	dec := json.NewDecoder(strings.NewReader(*msg.Body))
+	snsDec := json.NewDecoder(strings.NewReader(*msg.Body))
+	// var event events.S3Event
+	var snsEvent events.SNSEntity
+	// handle.Debugf("dec.decode: %s", snsDec.Decode(&snsEvent)) // 何かは読めてるが、後続の処理が空となる
+	if err := snsDec.Decode(&snsEvent); err != nil {
+		return nil, handle, errors.Wrap(err, "body parse failed")
+	}
+
+	dec := json.NewDecoder(strings.NewReader(*&snsEvent.Message))
 	var event events.S3Event
+	// handle.Debugf("s3Dec.decode: %s", dec.Decode(&event)) // 何かは読めてるが、後続の処理が空となる
 	if err := dec.Decode(&event); err != nil {
 		return nil, handle, errors.Wrap(err, "body parse failed")
 	}
 
+	// handle.Debugf("dec: %s", dec)
+	handle.Debugf("dec.decode: %s", dec.Decode(&event))
 	handle.Debugf("event: %s", event)
 	handle.Debugf("event.Records: %s", event.Records)
 	handle.Debugf("len: %s", len(event.Records))
